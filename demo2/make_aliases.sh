@@ -1,11 +1,13 @@
-alias sw="docker exec -it clab-lab1-part1-switch"
 alias host1="docker exec -it clab-lab1-part1-host1"
 alias host2="docker exec -it clab-lab1-part1-host2"
 alias host3="docker exec -it clab-lab1-part1-host3"
 alias host4="docker exec -it clab-lab1-part1-host4"
+alias sw="docker exec -it clab-lab1-part1-switch"
 
-
-#My custom aliases for ARM platform
+# tcpdump/tshark run via nsenter using the host's native binaries.
+# This is needed on ARM hosts because the amd64 container image runs under QEMU
+# emulation, and QEMU mis-handles the SIOCETHTOOL ioctl causing libpcap inside
+# the container to fail. The host's libpcap (1.10.5+) handles this gracefully.
 _ns_tcpdump() {
     local container="$1"; shift
     local pid
@@ -19,28 +21,14 @@ _ns_tshark() {
     nsenter -t "$pid" -n -- tshark "$@"
 }
 
-alias sw-tcpdump="_ns_tcpdump clab-lab1-part1-switch"
+alias switch-tcpdump="_ns_tcpdump clab-lab1-part1-switch"
 alias host1-tcpdump="_ns_tcpdump clab-lab1-part1-host1"
 alias host2-tcpdump="_ns_tcpdump clab-lab1-part1-host2"
 alias host3-tcpdump="_ns_tcpdump clab-lab1-part1-host3"
 alias host4-tcpdump="_ns_tcpdump clab-lab1-part1-host4"
 
-alias sw-tshark="_ns_tshark clab-lab1-part1-switch"
+alias switch-tshark="_ns_tshark clab-lab1-part1-switch"
 alias host1-tshark="_ns_tshark clab-lab1-part1-host1"
 alias host2-tshark="_ns_tshark clab-lab1-part1-host2"
 alias host3-tshark="_ns_tshark clab-lab1-part1-host3"
 alias host4-tshark="_ns_tshark clab-lab1-part1-host4"
-
-_ns_onepkt() {
-    local container="$1"; shift
-    local pid lab_folder_host
-    pid=$(docker inspect "$container" --format '{{.State.Pid}}')
-    lab_folder_host=$(docker inspect "$container" --format '{{range .Mounts}}{{if eq .Destination "/lab-folder"}}{{.Source}}{{end}}{{end}}')
-    nsenter -t "$pid" -n -- python3 "${lab_folder_host}/onepkt.py" "$@"
-}
-
-alias sw-onepkt="_ns_onepkt clab-lab1-part1-host1"
-alias host1-onepkt="_ns_onepkt clab-lab1-part1-host1"
-alias host2-onepkt="_ns_onepkt clab-lab1-part1-host2"
-alias host3-onepkt="_ns_onepkt clab-lab1-part1-host3"
-alias host4-onepkt="_ns_onepkt clab-lab1-part1-host4"
